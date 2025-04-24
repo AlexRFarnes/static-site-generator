@@ -98,6 +98,19 @@ class TestSplitNodeDelimiter(unittest.TestCase):
             new_nodes,
         )
 
+    def test_split_image_single(self):
+        node = TextNode(
+            "![image](https://www.example.COM/IMAGE.PNG)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("image", TextType.IMAGE, "https://www.example.COM/IMAGE.PNG"),
+            ],
+            new_nodes,
+        )
+
     def test_split_links(self):
         node = TextNode(
             "This is text with a [link](https://www.google.com)",

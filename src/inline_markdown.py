@@ -48,6 +48,9 @@ def split_nodes_image(old_nodes):
             image = f"![{alt_text}]({url})"
             sections = current_text.split(image, 1)
 
+            if len(sections) != 2:
+                raise ValueError("invalid markdown, image section not closed")
+
             # add the text if not empty
             if sections[0]:
                 new_nodes.append(TextNode(sections[0], TextType.TEXT))
@@ -86,6 +89,9 @@ def split_nodes_link(old_nodes):
         for text, url in matches:
             link = f"[{text}]({url})"
             sections = current_text.split(link, 1)
+
+            if len(sections) != 2:
+                raise ValueError("invalid markdown, link section not closed")
 
             if sections[0]:
                 new_nodes.append(TextNode(sections[0], TextType.TEXT))
