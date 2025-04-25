@@ -1,6 +1,19 @@
 import re
 from textnode import TextType, TextNode
 
+
+def text_to_textnodes(text):
+    nodes = [TextNode(text, TextType.TEXT)]
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+    nodes = split_nodes_delimiter(
+        nodes, "_", TextType.ITALIC)
+    nodes = split_nodes_delimiter(
+        nodes, "`", TextType.CODE)
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+    return nodes
+
+
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
     for old_node in old_nodes:
@@ -8,16 +21,18 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             new_nodes.append(old_node)
             continue
 
-        if old_node.text.count(delimiter) % 2 != 0: # delimiters should appear in pairs
-            raise ValueError("Unmatched delimiter found, invalid Markdwon syntax.")
-        
+        # delimiters should appear in pairs
+        if old_node.text.count(delimiter) % 2 != 0:
+            raise ValueError(
+                "Unmatched delimiter found, invalid Markdwon syntax.")
+
         split_nodes = []
         split_text = old_node.text.split(delimiter)
         for i, text in enumerate(split_text):
             if text == "":  # Skip empty segments
                 continue
 
-            if i % 2 == 0: # Even index: regular text
+            if i % 2 == 0:  # Even index: regular text
                 type = TextType.TEXT
             else:  # Odd index: matched text inside delimiters
                 type = text_type
@@ -25,7 +40,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 
         new_nodes.extend(split_nodes)
 
-    return new_nodes   
+    return new_nodes
 
 
 def split_nodes_image(old_nodes):
@@ -61,15 +76,14 @@ def split_nodes_image(old_nodes):
             # safety check for when the image markdown is at the end, there is no sections[1] then.
             if len(sections) > 1:
                 current_text = sections[1]
-            else: 
+            else:
                 current_text = ""
 
         if current_text:
             new_nodes.append(TextNode(current_text, TextType.TEXT))
-            
-            
+
     return new_nodes
-        
+
 
 def split_nodes_link(old_nodes):
     new_nodes = []
@@ -102,12 +116,11 @@ def split_nodes_link(old_nodes):
                 current_text = sections[1]
             else:
                 current_text = ""
-        
+
         if current_text:
             new_nodes.append(TextNode(current_text, TextType.TEXT))
 
         return new_nodes
-
 
 
 def extract_markdown_images(text):
@@ -118,18 +131,8 @@ def extract_markdown_links(text):
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
 
-node = TextNode(
-    "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
-    TextType.TEXT,
-)
-new_nodes = split_nodes_link([node])
-print(new_nodes)
+text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
 
-# [
-#     TextNode("This is text with a link ", TextType.TEXT),
-#     TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
-#     TextNode(" and ", TextType.TEXT),
-#     TextNode(
-#         "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
-#     ),
-# ]
+result = text_to_textnodes(text)
+for node in result:
+    print(node)
