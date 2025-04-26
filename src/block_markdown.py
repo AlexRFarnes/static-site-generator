@@ -97,13 +97,13 @@ def code_to_html(block):
 
 
 def quote_to_html(block):
-    lines = "".join(block.split("> ")).split("\n\n")
-    line_elements = []
+    lines = block.split("\n")
+    new_lines = []
     for line in lines:
-        line = " ".join(line.split("\n"))
-        paragraph = ParentNode("p", text_to_children(line))
-        line_elements.append(paragraph)
-    return ParentNode("blockquote", line_elements)
+        if not line.startswith(">"):
+            raise ValueError("invalid quote block")
+        new_lines.append(line.lstrip(">").strip())
+    return ParentNode("blockquote", text_to_children(" ".join(new_lines)))
 
 
 def unordered_list_to_html(block):
@@ -132,3 +132,16 @@ def text_to_children(text):
     for node in nodes:
         children.append(text_node_to_html_node(node))
     return children
+
+
+# def quote_to_html(block):
+#     # need to split by \n\n to preserve the inline \n and separate on the empty lines >
+#     print("".join(block.split(">")).split("\n\n"))
+#     lines = "".join(block.split(">")).split("\n\n")
+#     line_elements = []
+#     for line in lines:
+#         line = line.strip()
+#         line = " ".join(line.split("\n"))
+#         paragraph = ParentNode("p", text_to_children(line))
+#         line_elements.append(paragraph)
+#     return ParentNode("blockquote", line_elements)

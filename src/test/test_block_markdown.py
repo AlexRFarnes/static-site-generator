@@ -139,19 +139,16 @@ the **same** even with inline stuff
 
     def test_blockquote(self):
         md = """
-> This is a blockquote
-> with multiple lines in the same paragraph
-> 
-> This is a second paragraph in the blockquote
-
-Paragraph
+> "This is something someone said somewhere."
+>
+> Someone
 """
 
         node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
-            "<div><blockquote><p>This is a blockquote with multiple lines in the same paragraph</p><p>This is a second paragraph in the blockquote</p></blockquote><p>Paragraph</p></div>",
+            "<div><blockquote>\"This is something someone said somewhere.\"  Someone</blockquote></div>",
         )
 
     def test_unordered_list(self):

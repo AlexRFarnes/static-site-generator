@@ -1,5 +1,5 @@
 import unittest
-from main import extract_title
+from generate_page import extract_title
 
 
 class TestGeneratePage(unittest.TestCase):
