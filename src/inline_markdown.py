@@ -24,7 +24,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         # delimiters should appear in pairs
         if old_node.text.count(delimiter) % 2 != 0:
             raise ValueError(
-                "Unmatched delimiter found, invalid Markdwon syntax.")
+                "Unmatched delimiter found, invalid Markdown syntax.")
 
         split_nodes = []
         split_text = old_node.text.split(delimiter)
@@ -51,15 +51,15 @@ def split_nodes_image(old_nodes):
             continue
 
         # find all matches in the text
-        matches = extract_markdown_images(old_node.text)
+        images = extract_markdown_images(old_node.text)
 
-        if not matches:
+        if not images:
             new_nodes.append(old_node)
             continue
 
         current_text = old_node.text
 
-        for alt_text, url in matches:
+        for alt_text, url in images:
             image = f"![{alt_text}]({url})"
             sections = current_text.split(image, 1)
 
@@ -73,11 +73,7 @@ def split_nodes_image(old_nodes):
             # add the image
             new_nodes.append(TextNode(alt_text, TextType.IMAGE, url))
 
-            # safety check for when the image markdown is at the end, there is no sections[1] then.
-            if len(sections) > 1:
-                current_text = sections[1]
-            else:
-                current_text = ""
+            current_text = sections[1]
 
         if current_text:
             new_nodes.append(TextNode(current_text, TextType.TEXT))
@@ -92,15 +88,15 @@ def split_nodes_link(old_nodes):
             new_nodes.append(old_node)
             continue
 
-        matches = extract_markdown_links(old_node.text)
+        links = extract_markdown_links(old_node.text)
 
-        if not matches:
+        if not links:
             new_nodes.append(old_node)
             continue
 
         current_text = old_node.text
 
-        for text, url in matches:
+        for text, url in links:
             link = f"[{text}]({url})"
             sections = current_text.split(link, 1)
 
@@ -112,15 +108,12 @@ def split_nodes_link(old_nodes):
 
             new_nodes.append(TextNode(text, TextType.LINK, url))
 
-            if len(sections) > 1:
-                current_text = sections[1]
-            else:
-                current_text = ""
+            current_text = sections[1]
 
         if current_text:
             new_nodes.append(TextNode(current_text, TextType.TEXT))
 
-        return new_nodes
+    return new_nodes
 
 
 def extract_markdown_images(text):
@@ -129,10 +122,3 @@ def extract_markdown_images(text):
 
 def extract_markdown_links(text):
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
-
-
-text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
-
-result = text_to_textnodes(text)
-for node in result:
-    print(node)
