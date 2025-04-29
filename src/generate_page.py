@@ -1,6 +1,22 @@
 from block_markdown import markdown_to_html_node
-from shutil import rmtree, copy
-from os import path, listdir, mkdir, getcwd
+from os import path, listdir, makedirs
+from pathlib import Path
+
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    dir_path = Path(dir_path_content)
+    dest_path = Path(dest_dir_path)
+
+    for path in listdir(dir_path_content):
+        current_path = dir_path.joinpath(path)
+        if current_path.is_file():
+            name = current_path.stem
+            generate_page(current_path, template_path,
+                          f"{dest_path}/{name}.html")
+        else:
+            new_dest_path = dest_path.joinpath(path)
+            generate_pages_recursive(
+                current_path, template_path, new_dest_path)
 
 
 def generate_page(from_path, template_path, dest_path):
@@ -19,19 +35,12 @@ def generate_page(from_path, template_path, dest_path):
     with open(template_path) as f:
         template = f.read()
 
-    lines = template.split("\n")
-    new_lines = []
-    for line in lines:
-        if "{{ Title }}" in line:
-            sections = line.split("{{ Title }}")
-            line = "".join(sections[0] + title + sections[1])
+    template = template.replace("{{ Title }}", title)
+    template = template.replace("{{ Content }}", html)
 
-        if "{{ Content }}" in line:
-            sections = line.split("{{ Content }}")
-            line = "".join(sections[0] + html + sections[1])
-        new_lines.append(line)
-    template = "\n".join(new_lines)
-
+    dest_dir_path = path.dirname(dest_path)
+    if dest_dir_path != "":
+        makedirs(dest_dir_path, exist_ok=True)
     with open(dest_path, "w") as f:
         f.write(template)
 
@@ -42,31 +51,3 @@ def extract_title(md):
         if line.startswith("# "):
             return line[1:].strip()
     raise ValueError("h1 header is required")
-
-
-def generate_static_dir(from_path, dest_path):
-
-    if path.exists(dest_path):
-        rmtree(dest_path)
-    mkdir(dest_path)
-
-    all_paths = get_list_of_paths(from_path, dest_path)
-
-    for src, dst in all_paths:
-        if not path.isfile(src):
-            mkdir(dst)
-        else:
-            copy(src, dst)
-
-
-def get_list_of_paths(src, dst):
-    list_files = []
-    for file in listdir(src):
-        src_path = path.join(src, file)
-        dst_path = path.join(dst, file)
-        if path.isfile(src_path):
-            list_files.append((src_path, dst_path))
-        else:
-            list_files.append((src_path, dst_path))
-            list_files.extend(get_list_of_paths(src_path, dst_path))
-    return list_files
